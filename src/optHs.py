@@ -38,7 +38,7 @@ def update_coords(*coordinates):
         coord += get_random_vector()
     return coordinates
 
-def update_mol_coords(OBMol):
+def get_new_coords(OBMol):
     atoms = ob.OBMolAtomIter(OBMol)
     nuclear_charges, coordinates = tools.get_nuclear_charges_coordinates(OBMol)
     H_indices = np.where(nuclear_charges == 1)[0]
@@ -54,19 +54,17 @@ def make_updated_mol(OBMol):
     """
     new_mol = ob.OBMol()
 
-    new_coordinates = update_mol_coords(OBMol)
+    new_coordinates = get_new_coords(OBMol)
     atoms = ob.OBMolAtomIter(OBMol)
     nuclear_charges = [atom.GetAtomicNum() for atom in atoms]
 
-    for i in range(nuclear_charges):
-        atom = mol.NewAtom()
+    for i in range(len(nuclear_charges)):
+        atom = new_mol.NewAtom()
         nuclear_charge = nuclear_charges[i]
         atom.SetAtomicNum(nuclear_charge)
         coords = new_coordinates[i]
         atom.SetVector(coords[0], coords[1], coords[2])
 
-    assert len(ob.OBMolAtomIter(OBMol)) == len(ob.OBMolAtomIter(new_mol)), \
-            "new mol is not the same size as the old one"
     return new_mol
 
 def calc_energy(OBMol, method="UFF"):
@@ -78,9 +76,9 @@ def calc_energy(OBMol, method="UFF"):
 def minimise_energy(OBMol, method="UFF", maxiter=1000, RT=0.2):
     # initialise variables
     mol_old = OBMol 
-    E_old = 0.
-    E_new = 0.
-    dE = 0.
+    E_old = calc_energy(OBMol)
+    print("original energy", E_old)
+
     # counter
     accept = 0
 
@@ -92,7 +90,6 @@ def minimise_energy(OBMol, method="UFF", maxiter=1000, RT=0.2):
 
         # calc energy of new geometry 
         E_new = calc_energy(mol_new)
-        print("energy ", E_new)
         dE = E_new - E_old
         print("dE ", dE)
 
@@ -110,16 +107,15 @@ def minimise_energy(OBMol, method="UFF", maxiter=1000, RT=0.2):
             print("reject new geometry")
 
     acceptance_ratio = (accept / maxiter) * 100
-    print("acceptance ratio ", acceptance_ratio)
+    print("\n acceptance ratio ", acceptance_ratio)
 
     return mol_new 
 
 
 if __name__ == "__main__":
-    trial = "../data/dsgdb9nsd_000004/path_0_frag_0_parent.xyz"
+    trial = "../data/dsgdb9nsd_000004/sample.xyz"
     OBMol = tools.read_OBMol(trial)
-    update_mol_coords(OBMol)
-    #minimise_energy(OBMol)
+    minimise_energy(OBMol, maxiter=20)
 
 
 
