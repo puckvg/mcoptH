@@ -4,6 +4,7 @@ This library optimises the positions of H-atoms in a molecule, keeping the posit
 
 ## Installation and Dependencies 
 This is dependent on: 
+- numpy (do I need to tell you how to download numpy?)
 - openbabel [download instructions](https://openbabel.org/docs/dev/Installation/install.html)
 - sphere_point_picking from generate_coordinates [here](https://github.com/puckvg/generate_coordinates)
 - tools [here](https://github.com/puckvg/tools)
