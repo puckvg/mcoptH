@@ -11,7 +11,7 @@ def ethene_distorted():
     I only slightly distorted one of the C and 
     H positions in the molecule
     """
-    file = "../data/dsgdb9nsd_00004/sample.xyz"
+    file = "../data/dsgdb9nsd_000004/sample.xyz"
     OBMol = tools.read_OBMol(file)
     optHs.optimise_geometry(OBMol, maxiter=20)
 
