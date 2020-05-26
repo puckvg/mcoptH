@@ -9,9 +9,6 @@ import numpy as np
 import tools
 import sphere_point_picking
 
-def get_random(low=0, high=1, size=1):
-    return np.random.uniform(low=low, high=high, size=size)
-
 def get_boltzmann(dE, RT=0.2):
     """
     get Boltzmann term exp(- dE / RT)
@@ -72,8 +69,7 @@ def calc_energy(OBMol, method="UFF"):
     ff.Setup(OBMol)
     return ff.Energy()
 
-
-def minimise_energy(OBMol, method="UFF", maxiter=1000, RT=0.2):
+def optimise_geometry(OBMol, method="UFF", maxiter=1000, RT=0.2):
     # initialise variables
     mol_old = OBMol 
     E_old = calc_energy(OBMol)
@@ -95,15 +91,15 @@ def minimise_energy(OBMol, method="UFF", maxiter=1000, RT=0.2):
 
         # Metropolis-Hastings acceptance criterion
         boltzmann = get_boltzmann(dE, RT)
-        if boltzmann >= get_random():
+        if boltzmann >= np.random.uniform(): 
             # accept new geometry
-            print("accept")
+            print("accept new geometry")
             mol_old = mol_new 
             E_old = E_new
             accept += 1
 
-        # otherwise leave as is
         else:
+            # leave as is
             print("reject new geometry")
 
     acceptance_ratio = (accept / maxiter) * 100
@@ -115,7 +111,7 @@ def minimise_energy(OBMol, method="UFF", maxiter=1000, RT=0.2):
 if __name__ == "__main__":
     trial = "../data/dsgdb9nsd_000004/sample.xyz"
     OBMol = tools.read_OBMol(trial)
-    minimise_energy(OBMol, maxiter=20)
+    optimise_geometry(OBMol, maxiter=20)
 
 
 
