@@ -9,7 +9,6 @@ from ase import Atoms
 from copy import deepcopy
 
 import ase_tools
-import tools
 import sphere_point_picking
 
 def get_boltzmann(dE, RT=0.2):
@@ -24,8 +23,9 @@ def get_random_vector():
     get vector pointing in random direction and with random 
     length
     """
-    # get random length 
-    r = np.random.uniform()
+    # get length sampled from normal distribution with mu=0.5
+    # sigma=0.05
+    r = np.random.normal(0.5, 0.05)
     # get corresponding coords 
     coords = sphere_point_picking.sample_sphere_cartesian(r)
     return coords
@@ -47,15 +47,35 @@ def update_atoms(atoms):
     H_indices = np.where(nuclear_charges == 1)[0]
     
     # change H coordinates
-    coordinates[H_indices] = update_coords(coordinates[H_indices])
+    # randomly choose which to modify 
+    index = np.random.choice(H_indices, size=1)
+    coordinates[index] = update_coords(coordinates[index])
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.3, deldump=False):
+def optimise_geometry(atoms, maxiter=1000, RT=0.25, deldump=False):
     """
     using PM7 in MOPAC
     WARNING: MOPAC will dump a bunch of files: set deldump=True
     to delete these
+
+    Parameters
+    ----------
+    atoms: ase.Atoms object 
+           Initial geometry to optimise 
+    maxiter: int 
+             number of iterations of MC optimisation
+    RT: float 
+        temperature for the Boltzmann distribution
+    deldump: Bool 
+             whether or not to delete MOPAC's output files
+
+    Returns
+    -------
+    atoms_new: ase.Atoms object
+               Final geometry
+    E_new: float 
+           Energy of final geometry
     """
     # initialise variables
     atoms_old = atoms
@@ -89,7 +109,7 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.3, deldump=False):
             #    print("reject new geometry")
 
     acceptance_ratio = (accept / maxiter) * 100
-    print("acceptance ratio", acceptance_ratio)
+    print("acceptance ratio", acceptance_ratio, "over", maxiter, "iterations")
 
     if deldump:
         ase_tools.del_outfiles()
@@ -98,11 +118,13 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.3, deldump=False):
 
 
 if __name__ == "__main__":
-    trial = "../data/dsgdb9nsd_000004/sample.xyz"
+    trial = "../data/dsgdb9nsd_000004/path_0_frag_0_fragment.xyz"
     atoms = ase_tools.init_atoms_from_file(trial)
-    atoms_new, E_new = optimise_geometry(atoms, maxiter=10, deldump=True)
+    atoms_new, E_new = optimise_geometry(atoms, maxiter=1000, deldump=True)
     print("final energy", E_new)
-    #ase_tools.write_atoms_to_file(atoms_new, "opt.xyz")
+    # save file
+#    ase_tools.write_atoms_to_file(atoms_new, "opt.xyz")
+
 
 
 

@@ -20,7 +20,7 @@ def init_atoms_from_file(filename):
     return atoms 
 
 def write_atoms_to_file(atoms, filename, format="xyz"):
-    io.write(filename, atoms, format=format)
+    io.write(filename=filename, images=atoms, format=format)
 
 def get_energy(atoms, calculator=MOPAC, task="1SCF", method="PM7"):
     # initialise calculator
@@ -45,10 +45,6 @@ def del_outfiles():
     os.remove("mopac.mop")
     os.remove("mopac.out")
 
-if __name__ == "__main__":
-    test = "../data/dsgdb9nsd_000004/sample.xyz"
-    atoms = init_atoms_from_file(test)
-    get_energies(mol)
 
 
 
