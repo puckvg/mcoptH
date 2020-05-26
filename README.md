@@ -16,9 +16,10 @@ takes 100 steps to optimise a file provided in data and saves it as opt.xyz
 ## Installation and Dependencies 
 This is dependent on: 
 - numpy (do I need to tell you how to download numpy?)
-- ase
+- ase (see [their documentation](https://wiki.fysik.dtu.dk/ase/install.html) for installation instructions)
 
 ## TODO
-Perturbations to the molecule are currently so bad that the optimiser never converges or gets better...
+- Seems good for poor initial guesses, but not good for good initial guesses 
+- Add final geometry opt on top
 
 
