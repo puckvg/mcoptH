@@ -5,7 +5,7 @@ This library optimises the positions of H-atoms in a molecule, keeping the posit
 ## Installation and Dependencies 
 This is dependent on: 
 - numpy (do I need to tell you how to download numpy?)
-- openbabel [download instructions](https://openbabel.org/docs/dev/Installation/install.html)
+- ase
 
 ## TODO
 Perturbations to the molecule are currently so bad that the optimiser never converges or gets better...
