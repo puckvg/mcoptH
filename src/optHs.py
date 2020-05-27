@@ -22,9 +22,10 @@ def parse_args():
     parser.add_argument("xyz_in", metavar="xyz_in", type=str, help="infile")
     parser.add_argument("n_steps", metavar="n", type=int, help="n optimisation steps")
     parser.add_argument("xyz_out", metavar="xyz_out", type=str, help="outfile")
+    parser.add_argument("save_gif", metavar="gif", type=str, help="save gif yes/y or no/n")
 
     args = parser.parse_args()
-    return args.xyz_in, args.n_steps, args.xyz_out
+    return args.xyz_in, args.n_steps, args.xyz_out, args.save_gif
 
 def get_boltzmann(dE, RT=0.25):
     """
@@ -128,7 +129,7 @@ def update_atoms(atoms, mu=0.5, sigma=0.05):
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.25):
+def optimise_geometry(atoms, maxiter=1000, RT=0.25, savegif=None):
     """
     using PM7 in MOPAC
 
@@ -140,6 +141,8 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.25):
              number of iterations of MC optimisation
     RT: float 
         temperature for the Boltzmann distribution
+    savegif: str 
+             xyz file to save optimisation steps to
 
     Returns
     -------
@@ -161,6 +164,10 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.25):
         # translation move 
         atoms_new = update_atoms(atoms_old)
 
+        # save to file
+        if savegif:
+            ase_tools.write_atoms_to_file(atoms_new, savegif)
+
         # calc energy of new geometry 
         E_new = ase_tools.get_energy(atoms_new)
         # sometimes doesn't return energy (?)
@@ -175,10 +182,6 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.25):
                 E_old = E_new
                 accept += 1
 
-           # else:
-                # leave as is
-            #    print("reject new geometry")
-
     acceptance_ratio = (accept / maxiter) * 100
     print("acceptance ratio", acceptance_ratio, "over", maxiter, "iterations")
 
@@ -189,20 +192,9 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.25):
 
 
 if __name__ == "__main__":
-    xyz_in, n_steps, xyz_out = parse_args()
+    xyz_in, n_steps, xyz_out, savegif = parse_args()
     atoms = ase_tools.init_atoms_from_file(xyz_in)
-    atoms_new, E_new = optimise_geometry(atoms, maxiter=n_steps)
+    atoms_new, E_new = optimise_geometry(atoms, maxiter=n_steps, savegif=savegif)
     print("final energy", E_new)
     ase_tools.write_atoms_to_file(atoms_new, xyz_out)
-
-
-
-
-
-
-
-
-
-
-
 
