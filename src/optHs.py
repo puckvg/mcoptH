@@ -27,7 +27,7 @@ def parse_args():
     args = parser.parse_args()
     return args.xyz_in, args.n_steps, args.xyz_out, args.save_gif
 
-def get_boltzmann(dE, RT=0.25):
+def get_boltzmann(dE, RT=0.1):
     """
     get Boltzmann term exp(- dE / RT)
 
@@ -47,7 +47,7 @@ def get_boltzmann(dE, RT=0.25):
     boltzmann = np.exp(exponent)
     return boltzmann
 
-def get_random_vector(mu=0.5, sigma=0.05):
+def get_random_vector(mu=0., sigma=0.2):
     """
     get vector pointing in random direction and with random 
     length
@@ -70,7 +70,7 @@ def get_random_vector(mu=0.5, sigma=0.05):
     coords = sphere_point_picking.sample_sphere_cartesian(r)
     return coords
 
-def update_coords(*coordinates, mu=0.5, sigma=0.05):
+def update_coords(*coordinates, mu=0., sigma=0.2):
     """
     add random vector to all coordinates 
 
@@ -93,7 +93,7 @@ def update_coords(*coordinates, mu=0.5, sigma=0.05):
         coord += get_random_vector(mu, sigma)
     return coordinates
 
-def update_atoms(atoms, mu=0.5, sigma=0.05):
+def update_atoms(atoms, mu=0., sigma=0.2):
     """
     modify atom positions by randomly choosing a H atom, 
     generating a random vector with length distributed according
@@ -129,7 +129,7 @@ def update_atoms(atoms, mu=0.5, sigma=0.05):
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.25, savegif=None):
+def optimise_geometry(atoms, maxiter=1000, RT=0.1, savegif=None):
     """
     using PM7 in MOPAC
 
