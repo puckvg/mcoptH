@@ -29,7 +29,7 @@ def init_atoms_from_file(filename):
 def write_atoms_to_file(atoms, filename, format="xyz", append=False):
     io.write(filename=filename, images=atoms, format=format, append=append)
 
-def get_energy(atoms, calculator=MOPAC, task="1SCF", method="PM7"):
+def get_energy(atoms, calculator=MOPAC, task="1SCF", method="PM3"):
     # initialise calculator
     calc = calculator(label="mopac", method=method, task=task)
     # assign to atoms obj

@@ -194,14 +194,12 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.1, mu=0., sigma=0.1, save_gif="n
 
 def double_opt(atoms, n_steps=100, save_gif="n", extra_opt="y"):
     """
-    MC opt + LBFGS
+    MC opt + steepest descent 
     """
     atoms, E = optimise_geometry(atoms, maxiter=n_steps, save_gif=save_gif)
-    #print("Energy after MC:", E)
 
     if extra_opt != "n":
         atoms, E = ase_tools.opt(atoms)
-     #   print("energy after LBFGS", E)
 
     return atoms, E
 
