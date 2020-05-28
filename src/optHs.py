@@ -4,9 +4,10 @@ program to optimise positions of H atoms in a molecule
 as read from an xyz file 
 
 Intended usage:
-./optHs.py -xyz_in -n_steps -xyz_out
+./optHs.py -xyz_in -n_steps -xyz_out -steps
 where xyz_in is the file to optimise, n_steps is the number of MC steps and xyz_out
-is the outfile of the optimised structure 
+is the outfile of the optimised structure. steps is an argument to specify whether 
+or not to save the optimisation steps
 """
 from copy import deepcopy
 import argparse as ap
@@ -27,7 +28,7 @@ def parse_args():
     args = parser.parse_args()
     return args.xyz_in, args.n_steps, args.xyz_out, args.save_gif
 
-def get_boltzmann(dE, RT=0.1):
+def get_boltzmann(dE, RT):
     """
     get Boltzmann term exp(- dE / RT)
 
@@ -47,7 +48,7 @@ def get_boltzmann(dE, RT=0.1):
     boltzmann = np.exp(exponent)
     return boltzmann
 
-def get_random_vector(mu=0., sigma=0.2):
+def get_random_vector(mu, sigma):
     """
     get vector pointing in random direction and with random 
     length
@@ -70,7 +71,7 @@ def get_random_vector(mu=0., sigma=0.2):
     coords = sphere_point_picking.sample_sphere_cartesian(r)
     return coords
 
-def update_coords(*coordinates, mu=0., sigma=0.2):
+def update_coords(*coordinates, mu, sigma):
     """
     add random vector to all coordinates 
 
@@ -93,7 +94,7 @@ def update_coords(*coordinates, mu=0., sigma=0.2):
         coord += get_random_vector(mu, sigma)
     return coordinates
 
-def update_atoms(atoms, mu=0., sigma=0.2):
+def update_atoms(atoms, mu, sigma):
     """
     modify atom positions by randomly choosing a H atom, 
     generating a random vector with length distributed according
@@ -125,11 +126,11 @@ def update_atoms(atoms, mu=0., sigma=0.2):
     # change H coordinates
     # randomly choose which to modify 
     index = np.random.choice(H_indices, size=1)
-    coordinates[index] = update_coords(coordinates[index])
+    coordinates[index] = update_coords(coordinates[index], mu=mu, sigma=sigma)
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.1, savegif=None):
+def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.35, save_gif="n"):
     """
     using PM7 in MOPAC
 
@@ -162,11 +163,11 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.1, savegif=None):
     # begin simulation 
     for i in range(maxiter):
         # translation move 
-        atoms_new = update_atoms(atoms_old)
+        atoms_new = update_atoms(atoms_old, mu, sigma)
 
         # save to file
-        if savegif:
-            ase_tools.write_atoms_to_file(atoms_new, savegif)
+        if save_gif != "n":
+            ase_tools.write_atoms_to_file(atoms_new, "steps.xyz", append=True)
 
         # calc energy of new geometry 
         E_new = ase_tools.get_energy(atoms_new)
@@ -192,9 +193,9 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.1, savegif=None):
 
 
 if __name__ == "__main__":
-    xyz_in, n_steps, xyz_out, savegif = parse_args()
+    xyz_in, n_steps, xyz_out, save_gif = parse_args()
     atoms = ase_tools.init_atoms_from_file(xyz_in)
-    atoms_new, E_new = optimise_geometry(atoms, maxiter=n_steps, savegif=savegif)
+    atoms_new, E_new = optimise_geometry(atoms, maxiter=n_steps, save_gif=save_gif)
     print("final energy", E_new)
     ase_tools.write_atoms_to_file(atoms_new, xyz_out)
 
