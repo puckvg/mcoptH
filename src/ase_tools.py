@@ -8,9 +8,15 @@ within ASE
 from ase import Atoms 
 from ase import io
 from ase.calculators.mopac import MOPAC
-from ase.optimize import LBFGS
+from ase.optimize.sciopt import SciPyFminCG
+import numpy as np
 
 import os
+
+def atoms_to_nuclear_charges_coordinates(atoms):
+    nuclear_charges = atoms.numbers 
+    coordinates = atoms.positions
+    return np.array(nuclear_charges), np.array(coordinates)
 
 def init_atoms_obj(nuclear_charges, coordinates):
     atoms = Atoms(numbers=nuclear_charges, positions=coordinates)
@@ -38,7 +44,7 @@ def get_energy(atoms, calculator=MOPAC, task="1SCF", method="PM7"):
 
     return e
 
-def opt(atoms, calculator=MOPAC, task="1SCF GRADIENTS", method="PM7", opt_method=LBFGS):
+def opt(atoms, calculator=MOPAC, task="1SCF GRADIENTS", method="PM3", opt_method=SciPyFminCG):
     atoms.calc = calculator(label="mopac", task=task, method=method)
     dyn = opt_method(atoms)
     dyn.run()

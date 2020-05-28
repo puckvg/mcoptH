@@ -132,7 +132,7 @@ def update_atoms(atoms, mu, sigma):
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.35, save_gif="n"):
+def optimise_geometry(atoms, maxiter=1000, RT=0.1, mu=0., sigma=0.1, save_gif="n"):
     """
     using PM7 in MOPAC
 
@@ -157,7 +157,6 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.35, save_gif=
     # initialise variables
     atoms_old = atoms
     E_old = ase_tools.get_energy(atoms_old)
-    print("original energy", E_old)
 
     # counter
     accept = 0
@@ -193,17 +192,24 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.35, save_gif=
 
     return atoms_new, E_new
 
+def double_opt(atoms, n_steps=100, save_gif="n", extra_opt="y"):
+    """
+    MC opt + LBFGS
+    """
+    atoms, E = optimise_geometry(atoms, maxiter=n_steps, save_gif=save_gif)
+    #print("Energy after MC:", E)
+
+    if extra_opt != "n":
+        atoms, E = ase_tools.opt(atoms)
+     #   print("energy after LBFGS", E)
+
+    return atoms, E
 
 
 if __name__ == "__main__":
     xyz_in, n_steps, xyz_out, save_gif, extra_opt = parse_args()
     atoms = ase_tools.init_atoms_from_file(xyz_in)
-    atoms_new, E_new = optimise_geometry(atoms, maxiter=n_steps, save_gif=save_gif)
-    print("energy after MC", E_new)
-
-    if extra_opt != "n":
-        atoms_new, E_new = ase_tools.opt(atoms_new)
-        print("energy after LBFGS", E_new)
+    atoms_new, E_new = double_opt(atoms, n_steps, save_gif, extra_opt)
 
     # save final file 
     ase_tools.write_atoms_to_file(atoms_new, xyz_out)
