@@ -4,10 +4,10 @@ program to optimise positions of H atoms in a molecule
 as read from an xyz file 
 
 Intended usage:
-./optHs.py -xyz_in -n_steps -xyz_out -steps
-where xyz_in is the file to optimise, n_steps is the number of MC steps and xyz_out
-is the outfile of the optimised structure. steps is an argument to specify whether 
-or not to save the optimisation steps
+./optHs.py -xyz_in -n_steps -steps -extra_opt
+where xyz_in is the file to optimise, n_steps is the number of MC steps. 
+steps is an argument to specify whether or not to save the optimisation steps,
+extra_opt is an option to add on an LFBGS optimisation at the end
 """
 from copy import deepcopy
 import argparse as ap
@@ -23,10 +23,12 @@ def parse_args():
     parser.add_argument("xyz_in", metavar="xyz_in", type=str, help="infile")
     parser.add_argument("n_steps", metavar="n", type=int, help="n optimisation steps")
     parser.add_argument("xyz_out", metavar="xyz_out", type=str, help="outfile")
-    parser.add_argument("save_gif", metavar="gif", type=str, help="save gif yes/y or no/n")
+    parser.add_argument("save_gif", metavar="gif", type=str, help="save gif y or n")
+    parser.add_argument("extra_opt", metavar="extra_opt", type=str, 
+                        help="perform final opt on top y or n")
 
     args = parser.parse_args()
-    return args.xyz_in, args.n_steps, args.xyz_out, args.save_gif
+    return args.xyz_in, args.n_steps, args.xyz_out, args.save_gif, args.extra_opt
 
 def get_boltzmann(dE, RT):
     """
@@ -192,10 +194,18 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.35, save_gif=
     return atoms_new, E_new
 
 
+
 if __name__ == "__main__":
-    xyz_in, n_steps, xyz_out, save_gif = parse_args()
+    xyz_in, n_steps, xyz_out, save_gif, extra_opt = parse_args()
     atoms = ase_tools.init_atoms_from_file(xyz_in)
     atoms_new, E_new = optimise_geometry(atoms, maxiter=n_steps, save_gif=save_gif)
-    print("final energy", E_new)
+    print("energy after MC", E_new)
+
+    if extra_opt != "n":
+        atoms_new, E_new = ase_tools.opt(atoms_new)
+        print("energy after LBFGS", E_new)
+
+    # save final file 
     ase_tools.write_atoms_to_file(atoms_new, xyz_out)
+
 

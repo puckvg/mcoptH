@@ -8,6 +8,7 @@ within ASE
 from ase import Atoms 
 from ase import io
 from ase.calculators.mopac import MOPAC
+from ase.optimize import LBFGS
 
 import os
 
@@ -36,6 +37,16 @@ def get_energy(atoms, calculator=MOPAC, task="1SCF", method="PM7"):
         return None
 
     return e
+
+def opt(atoms, calculator=MOPAC, task="1SCF GRADIENTS", method="PM7", opt_method=LBFGS):
+    atoms.calc = calculator(label="mopac", task=task, method=method)
+    dyn = opt_method(atoms)
+    dyn.run()
+
+    del_outfiles()
+
+    e = atoms.get_potential_energy()
+    return atoms, e
 
 def del_outfiles():
     """
