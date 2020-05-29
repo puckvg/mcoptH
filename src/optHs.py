@@ -132,7 +132,7 @@ def update_atoms(atoms, mu, sigma):
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.1, mu=0., sigma=0.1, save_gif="n"):
+def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.05, save_gif="y"):
     """
     using PM7 in MOPAC
 

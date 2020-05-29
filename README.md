@@ -9,23 +9,16 @@ Intended usage:
 ```
 where file_to_opt is the xyz file to optimise, n_steps is the number of steps taken by the optimiser, out_file is the 
 name of the xyz outfile, save_gif is an option to save the xyz file of the MC optimisation to make a gif, extra_opt is an option to add 
-on an LBFGS optimisation routine at the end. For example:
-```
-./optHs.py ../data/dsgdb9nsd_000004/path_0_frag_0_parent.xyz 100 "opt.xyz" "n" "n"
-```
-takes 100 steps to optimise a file provided in data and saves it as opt.xyz.
+on a steepest descent optimisation routine at the end. 
 
-```
-./optHs.py ../data/dsgdb9nsd_000004/path_0_frag_0_parent.xyz 100 "opt.xyz" "n" "y"
-```
-takes 100 steps of the MC optimiser, then adds an LBFGS cycle and saves the final structure as opt.xyz.
-
-There are files in ```src``` that make gifs out of the xyz files of the optimisation steps.
+I suggest around 250 optimisation steps of the MC routine to get a decent initial guess for the steepest descent algorithm 
+at the end.
 
 ## Installation and Dependencies 
 This is dependent on: 
 - numpy (do I need to tell you how to download numpy?)
 - ase (see [their documentation](https://wiki.fysik.dtu.dk/ase/install.html) for installation instructions)
+- a MOPAC installation to use within ase 
 
 
 
