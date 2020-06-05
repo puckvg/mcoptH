@@ -20,5 +20,3 @@ This is dependent on:
 - ase (see [their documentation](https://wiki.fysik.dtu.dk/ase/install.html) for installation instructions)
 - a MOPAC installation to use within ase 
 
-
-

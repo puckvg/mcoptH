@@ -157,6 +157,9 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.05, save_gif=
     # initialise variables
     atoms_old = atoms
     E_old = ase_tools.get_energy(atoms_old)
+    # can return none
+    if E_old is None:
+        return atoms_old, E_old
 
     # counter
     accept = 0
