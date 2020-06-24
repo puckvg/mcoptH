@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """
+Metropolis Hastings algorithm:
+https://cims.nyu.edu/~donev/Teaching/WrittenOral/Projects/AnthonyTrubiano-WrittenAndOral.pdf
+
 program to optimise positions of H atoms in a molecule
 as read from an xyz file 
 
@@ -30,25 +33,6 @@ def parse_args():
     args = parser.parse_args()
     return args.xyz_in, args.n_steps, args.xyz_out, args.save_gif, args.extra_opt
 
-def get_boltzmann(dE, RT):
-    """
-    get Boltzmann term exp(- dE / RT)
-
-    Parameters 
-    ----------
-    dE: float 
-        change in energy in kcal/mol
-    RT: float 
-        temperature in K multiplied by gas constant
-
-    Returns 
-    -------
-    boltzmann: float 
-               exp(- dE / RT)
-    """
-    exponent = -1 * dE / RT
-    boltzmann = np.exp(exponent)
-    return boltzmann
 
 def get_random_vector(mu, sigma):
     """
@@ -129,10 +113,43 @@ def update_atoms(atoms, mu, sigma):
     # randomly choose which to modify 
     index = np.random.choice(H_indices, size=1)
     coordinates[index] = update_coords(coordinates[index], mu=mu, sigma=sigma)
+
     new_atoms = ase_tools.init_atoms_obj(nuclear_charges, coordinates)
     return new_atoms
 
-def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.05, save_gif="y"):
+def get_boltzmann(dE, RT):
+    """
+    get Boltzmann term exp(- dE / RT)
+
+    Parameters 
+    ----------
+    dE: float 
+        change in energy in kcal/mol
+    RT: float 
+        temperature in K multiplied by gas constant
+
+    Returns 
+    -------
+    boltzmann: float 
+               exp(- dE / RT)
+    """
+    exponent = -1 * dE / RT
+    boltzmann = np.exp(exponent)
+    return boltzmann
+
+def acceptance_probability(dE, RT):
+    boltzmann = get_boltzmann(dE, RT)
+    return min(1, boltzmann)
+
+def accept_reject_move(dE, RT):
+    probability = acceptance_probability(dE, RT)
+    uniform = np.random.uniform()
+    if probability > uniform: 
+        return True
+    else:
+        return False
+
+def optimise_geometry(atoms, maxiter=1000, RT=2500, mu=0., sigma=0.1, save_gif="y"):
     """
     using PM7 in MOPAC
 
@@ -157,9 +174,7 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.05, save_gif=
     # initialise variables
     atoms_old = atoms
     E_old = ase_tools.get_energy(atoms_old)
-    # can return none
-    if E_old is None:
-        return atoms_old, E_old
+    print("Initial energy before MC optimisation: ", E_old)
 
     # counter
     accept = 0
@@ -175,17 +190,13 @@ def optimise_geometry(atoms, maxiter=1000, RT=0.05, mu=0., sigma=0.05, save_gif=
 
         # calc energy of new geometry 
         E_new = ase_tools.get_energy(atoms_new)
-        # sometimes doesn't return energy (?)
-        if E_new:
-            dE = E_new - E_old
 
-            # Metropolis-Hastings acceptance criterion
-            boltzmann = get_boltzmann(dE, RT)
-            if boltzmann >= np.random.uniform(): 
-                # accept new geometry
-                atoms_old = atoms_new 
-                E_old = E_new
-                accept += 1
+        dE = E_new - E_old
+        if accept_reject_move(dE, RT):
+            # accept new geometry
+            atoms_old = atoms_new 
+            E_old = E_new
+            accept += 1
 
     acceptance_ratio = (accept / maxiter) * 100
     print("acceptance ratio", acceptance_ratio, "over", maxiter, "iterations")
@@ -211,6 +222,7 @@ if __name__ == "__main__":
     xyz_in, n_steps, xyz_out, save_gif, extra_opt = parse_args()
     atoms = ase_tools.init_atoms_from_file(xyz_in)
     atoms_new, E_new = double_opt(atoms, n_steps, save_gif, extra_opt)
+    print("Energy after MC optimisation: ", E_new)
 
     # save final file 
     ase_tools.write_atoms_to_file(atoms_new, xyz_out)
