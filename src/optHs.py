@@ -149,7 +149,7 @@ def accept_reject_move(dE, RT):
     else:
         return False
 
-def optimise_geometry(atoms, maxiter=1000, RT=2500, mu=0., sigma=0.1, save_gif="y"):
+def optimise_geometry(atoms, maxiter=100, RT=1000, mu=0., sigma=0.05, save_gif="steps.xyz"):
     """
     using PM7 in MOPAC
 
@@ -176,33 +176,33 @@ def optimise_geometry(atoms, maxiter=1000, RT=2500, mu=0., sigma=0.1, save_gif="
     E_old = ase_tools.get_energy(atoms_old)
     print("Initial energy before MC optimisation: ", E_old)
 
-    # counter
-    accept = 0
-
     # begin simulation 
     for i in range(maxiter):
         # translation move 
         atoms_new = update_atoms(atoms_old, mu, sigma)
 
         # save to file
-        if save_gif != "n":
-            ase_tools.write_atoms_to_file(atoms_new, "steps.xyz", append=True)
+        if save_gif:
+            ase_tools.write_atoms_to_file(atoms_new, save_gif, append=True)
 
         # calc energy of new geometry 
         E_new = ase_tools.get_energy(atoms_new)
 
-        dE = E_new - E_old
-        if accept_reject_move(dE, RT):
-            # accept new geometry
-            atoms_old = atoms_new 
-            E_old = E_new
-            accept += 1
+        if E_new:
 
-    acceptance_ratio = (accept / maxiter) * 100
-    print("acceptance ratio", acceptance_ratio, "over", maxiter, "iterations")
+            dE = E_new - E_old
+            if accept_reject_move(dE, RT):
+                # accept new geometry
+                atoms_old = atoms_new 
+                E_old = E_new
+
+        else:
+            E_new = E_old
 
     # dump outfiles
     ase_tools.del_outfiles()
+
+    print("Energy after MC optimisation: ", E_new)
 
     return atoms_new, E_new
 
